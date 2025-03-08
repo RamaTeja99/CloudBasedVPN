@@ -1,53 +1,78 @@
 package com.example.backendvpn.model;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.*;
-import lombok.*;
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+import lombok.Data;
+
 @Entity
-@Table(name = "users")
+@Data
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @Column(unique = true, nullable = false)
     private String email;
-    private String password;
-    private boolean isActive;
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean isSubscribed;
+    
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+    
+    private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserCredentials credentials;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Subscription> subscriptions = new ArrayList<>();
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 	public String getEmail() {
 		return email;
 	}
+
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public String getPassword() {
-		return password;
+
+	public Role getRole() {
+		return role;
 	}
-	public void setPassword(String password) {
-		this.password = password;
+
+	public void setRole(Role role) {
+		this.role = role;
 	}
-	public boolean isActive() {
-		return isActive;
+
+	public UserCredentials getCredentials() {
+		return credentials;
 	}
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
+
+	public void setCredentials(UserCredentials credentials) {
+		this.credentials = credentials;
 	}
-	public boolean isSubscribed() {
-		return isSubscribed;
+
+	public List<Subscription> getSubscriptions() {
+		return subscriptions;
 	}
-	public void setSubscribed(boolean isSubscribed) {
-		this.isSubscribed = isSubscribed;
+
+	public void setSubscriptions(List<Subscription> subscriptions) {
+		this.subscriptions = subscriptions;
 	}
-    
-    }  
+	
+}

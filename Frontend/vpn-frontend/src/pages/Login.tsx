@@ -27,7 +27,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md bg-dark-secondary">
         <CardHeader>
-          <CardTitle className="text-dark-foreground text-center">Login</CardTitle>
+          <CardTitle className="text-dark-foreground text-center">Login for VPN</CardTitle>
         </CardHeader>
         <CardContent>
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -48,7 +48,7 @@ export default function Login() {
               className="bg-background text-foreground"
               required
             />
-            <Button type="submit" className="w-full bg-dark-primary hover:bg-dark-secondary">
+            <Button type="submit" className="text-dark-foreground w-full bg-dark-primary hover:bg-dark-secondary">
               Login
             </Button>
           </form>

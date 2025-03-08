@@ -25,7 +25,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md bg-dark-secondary">
         <CardHeader>
-          <CardTitle className="text-dark-foreground text-center">Register</CardTitle>
+          <CardTitle className="text-dark-foreground text-center">Register For VPN</CardTitle>
         </CardHeader>
         <CardContent>
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -46,7 +46,7 @@ export default function Register() {
               className="bg-background text-foreground"
               required
             />
-            <Button type="submit" className="w-full bg-dark-primary hover:bg-dark-secondary">
+            <Button type="submit" className="text-dark-foreground w-full bg-dark-primary hover:bg-dark-secondary" variant="ghost">
               Register
             </Button>
           </form>
