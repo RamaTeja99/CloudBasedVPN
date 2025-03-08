@@ -24,7 +24,7 @@ export default function NavigationBar() {
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-dark-primary hover:bg-dark-secondary">
+                <Button variant="ghost" className="text-dark-foreground">
                   Register
                 </Button>
               </Link>
