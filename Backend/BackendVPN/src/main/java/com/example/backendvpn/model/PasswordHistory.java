@@ -3,10 +3,8 @@ package com.example.backendvpn.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
-import lombok.Data;
-
 @Entity
-@Data
+
 public class PasswordHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
