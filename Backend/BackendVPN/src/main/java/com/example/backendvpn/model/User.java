@@ -1,41 +1,75 @@
 package com.example.backendvpn.model;
 
+import jakarta.persistence.*;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import jakarta.persistence.*;
-import lombok.Data;
 
 @Entity
-@Data
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @Column(unique = true, nullable = false)
+    private String username;
+
     @Column(unique = true, nullable = false)
     private String email;
-    
+
     @Enumerated(EnumType.STRING)
-    private Role role = Role.USER;
-    
+    private Role role = Role.USER; // Default role is USER
+
     private LocalDateTime createdAt = LocalDateTime.now();
-    
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserCredentials credentials;
-    
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Subscription> subscriptions = new ArrayList<>();
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(() -> "ROLE_" + role.name());
+    }
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+    @Override
+    public String getPassword() {
+        return credentials.getPassword();
+    }
 
-	public Long getId() {
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return !credentials.isPasswordExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+    
+    public Long getId() {
 		return id;
 	}
 
@@ -59,6 +93,14 @@ public class User {
 		this.role = role;
 	}
 
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
 	public UserCredentials getCredentials() {
 		return credentials;
 	}
@@ -74,5 +116,13 @@ public class User {
 	public void setSubscriptions(List<Subscription> subscriptions) {
 		this.subscriptions = subscriptions;
 	}
-	
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	// Define the Role enum inside the User class
+    public enum Role {
+        USER, ADMIN
+    }
 }
