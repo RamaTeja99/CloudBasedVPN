@@ -6,7 +6,7 @@ import UserDashboard from "@/pages/UserDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import PaymentPage from "@/pages/PaymentPage";
 import HomePage from "@/pages/HomePage";
-import ProtectedRoute from "@/components/ProtectedRoute";
+//import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -24,26 +24,19 @@ export default function App() {
             <Route path="/register" element={<Register />} />
 
             {/* Protected Routes for Authenticated Users */}
-            <Route
-              element={
-                <ProtectedRoute
-                  isAllowed={isAuthenticated}
-                  redirectPath="/login"
-                />
-              }
-            >
+            <Route>
               <Route path="/dashboard" element={<UserDashboard />} />
               <Route path="/payment" element={<PaymentPage />} />
             </Route>
 
             {/* Protected Routes for Admins Only */}
             <Route
-              element={
-                <ProtectedRoute
-                  isAllowed={isAuthenticated && isAdmin}
-                  redirectPath="/login"
-                />
-              }
+              // element={
+              //   <ProtectedRoute
+              //     isAllowed={isAuthenticated && isAdmin}
+              //     redirectPath="/login"
+              //   />
+              // }
             >
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>

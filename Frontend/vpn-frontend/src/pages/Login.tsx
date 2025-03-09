@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "@/services/api";
+import { loginUser } from "@/services/api"; // Fixed incorrect alias import
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,39 +19,61 @@ export default function Login() {
       localStorage.setItem("role", response.data.role);
       navigate(response.data.role === "ADMIN" ? "/admin" : "/dashboard");
     } catch (err) {
-      setError("Invalid email or password");
-    }
+        setError(`Invalid email or password. ${err}`);    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md bg-dark-secondary">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-600 p-6">
+      <Card className="w-full max-w-lg bg-gray-900 shadow-2xl border border-gray-700 rounded-lg">
         <CardHeader>
-          <CardTitle className="text-dark-foreground text-center">Login for VPN</CardTitle>
+          <CardTitle className="text-white text-center text-2xl font-semibold">
+            CloudVPN - Secure Browsing
+          </CardTitle>
+          <p className="text-gray-400 text-center text-sm">Powered by AWS</p>
         </CardHeader>
         <CardContent>
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-background text-foreground"
-              required
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-background text-foreground"
-              required
-            />
-            <Button type="submit" className="text-dark-foreground w-full bg-dark-primary hover:bg-dark-secondary">
-              Login
+          {error && (
+            <p className="text-red-500 text-center mb-4 font-medium">{error}</p>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-gray-300 mb-1">Email Address</label>
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-gray-800 text-white border border-gray-600 focus:ring focus:ring-blue-400"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-1">Password</label>
+              <Input
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-800 text-white border border-gray-600 focus:ring focus:ring-blue-400"
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-semibold shadow-md"
+            >
+              Login Securely
             </Button>
           </form>
+          <p className="text-gray-400 text-sm text-center mt-4">
+            Need an account?{" "}
+            <span
+              className="text-blue-400 hover:underline cursor-pointer"
+              onClick={() => navigate("/register")}
+            >
+              Sign up here
+            </span>
+          </p>
         </CardContent>
       </Card>
     </div>
