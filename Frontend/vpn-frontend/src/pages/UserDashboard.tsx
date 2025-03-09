@@ -5,28 +5,28 @@ import { useNavigate } from "react-router-dom";
 import { connectToVpn, checkSubscription } from "@/services/api";
 
 export default function UserDashboard() {
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [vpnStatus, setVpnStatus] = useState("Disconnected");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [vpnStatus, setVpnStatus] = useState<string>("Disconnected");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSubscription = async () => {
       try {
         const response = await checkSubscription();
-        setIsSubscribed(response.data.isActive);
-        if (!response.data.isActive) {
+        setIsSubscribed(response.isActive); // Use response.isActive directly
+        if (!response.isActive) {
           navigate("/payment");
         }
       } catch (err) {
-        setError(`Failed to fetch subscription details.${err}`);
+        setError(`Failed to fetch subscription details. ${err}`);
       } finally {
         setIsLoading(false);
       }
     };
     fetchSubscription();
-  }, [navigate]);
+  }, []); // Remove `navigate` from dependencies
 
   const handleConnect = async () => {
     if (!isSubscribed) {
@@ -35,9 +35,9 @@ export default function UserDashboard() {
     }
     try {
       const response = await connectToVpn();
-      setVpnStatus(response.data.status);
+      setVpnStatus(response.status); // Use response.status directly
     } catch (err) {
-      setError(`Failed to connect to VPN.${err}`);
+      setError(`Failed to connect to VPN. ${err}`);
     }
   };
 
@@ -64,7 +64,13 @@ export default function UserDashboard() {
           </Button>
           {!isSubscribed && (
             <p className="text-gray-400 text-sm text-center mt-4">
-              You are not subscribed to any plan. <span className="text-blue-400 hover:underline cursor-pointer" onClick={() => navigate("/payment")} >Subscribe here</span>
+              You are not subscribed to any plan.{" "}
+              <span
+                className="text-blue-400 hover:underline cursor-pointer"
+                onClick={() => navigate("/payment")}
+              >
+                Subscribe here
+              </span>
             </p>
           )}
         </CardContent>

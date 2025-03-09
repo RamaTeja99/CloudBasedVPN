@@ -75,8 +75,7 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- JWT -->
-<dependency>
+		<dependency>
     <groupId>io.jsonwebtoken</groupId>
     <artifactId>jjwt-api</artifactId>
     <version>0.11.5</version>
@@ -87,19 +86,19 @@
     <version>0.11.5</version>
     <scope>runtime</scope>
 </dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-jackson</artifactId>
+    <version>0.11.5</version>
+    <scope>runtime</scope>
+</dependency>
+
 
 <!-- Razorpay -->
 <dependency>
     <groupId>com.razorpay</groupId>
     <artifactId>razorpay-java</artifactId>
     <version>1.4.4</version>
-</dependency>
-
-<!-- SHA-256 -->
-<dependency>
-    <groupId>commons-codec</groupId>
-    <artifactId>commons-codec</artifactId>
-    <version>1.15</version>
 </dependency>
 	</dependencies>
 

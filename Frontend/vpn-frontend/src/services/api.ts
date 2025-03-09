@@ -1,42 +1,101 @@
-import axios from 'axios';
+import axios from "axios";
+import Cookies from "js-cookie";
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = "http://localhost:8080/api";
 
-export const loginUser = async (credentials: { email: string; password: string }) => {
-  return axios.post(`${API_URL}/auth/login`, credentials);
+interface LoginResponse {
+  token: string;
+  role: string;
+  username: string;
+}
+
+interface SubscriptionResponse {
+  isActive: boolean;
+}
+
+interface User {
+  id: number;
+  email: string;
+  role: string;
+  subscription?: {
+    planType?: string;
+  };
+}
+
+// Login user
+export const loginUser = async (username: string, password: string): Promise<void> => {
+  try {
+    const response = await axios.post<LoginResponse>(`${API_URL}/auth/login`, null, {
+      params: { username, password },
+    });
+
+    // Store JWT & Role in Cookies
+    Cookies.set("token", response.data.token, { expires: 1 });
+    Cookies.set("role", response.data.role, { expires: 1 });
+    Cookies.set("username", response.data.username, { expires: 1 });
+
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.data || "Login failed.");
+    }
+    throw new Error("An unexpected error occurred.");
+  }
 };
 
-export const registerUser = async (credentials: { email: string; password: string }) => {
-  return axios.post(`${API_URL}/auth/register`, credentials);
+// Register user
+export const registerUser = async (username: string, email: string, password: string): Promise<User> => {
+  try {
+    const response = await axios.post<User>(`${API_URL}/auth/register`, null, {
+      params: { username, email, password },
+    });
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.data || "Registration failed.");
+    }
+    throw new Error("An unexpected error occurred.");
+  }
 };
 
-export const connectToVpn = async () => {
-  return axios.post(`${API_URL}/vpn/connect`, {}, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+// Connect to VPN
+export const connectToVpn = async (): Promise<{ status: string }> => {
+  const response = await axios.post<{ status: string }>(
+    `${API_URL}/vpn/connect`,
+    {},
+    { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
+  );
+  return response.data;
+};
+
+// Check Subscription
+export const checkSubscription = async (): Promise<SubscriptionResponse> => {
+  const response = await axios.get<SubscriptionResponse>(`${API_URL}/subscription`, {
+    headers: { Authorization: `Bearer ${Cookies.get("token")}` },
   });
+  return response.data;
 };
 
-export const checkSubscription = async () => {
-  return axios.get(`${API_URL}/subscription`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+// Get all users (Admin)
+export const getAllUsers = async (): Promise<User[]> => {
+  const response = await axios.get<User[]>(`${API_URL}/admin/users`, {
+    headers: { Authorization: `Bearer ${Cookies.get("token")}` },
   });
+  return response.data;
 };
 
-export const getAllUsers = async () => {
-  return axios.get(`${API_URL}/admin/users`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
-};
+// Subscribe to a plan
 export const subscribeToPlan = async (
-  plan: 'FREE' | 'MONTHLY' | 'YEARLY',
+  plan: "FREE" | "MONTHLY" | "YEARLY",
   amount?: number,
   currency?: string,
   receipt?: string,
   paymentId?: string
-) => {
-  return axios.post(
+): Promise<void> => {
+  await axios.post(
     `${API_URL}/subscription/subscribe`,
     { plan, amount, currency, receipt, paymentId },
-    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+    {
+      headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+    }
   );
 };

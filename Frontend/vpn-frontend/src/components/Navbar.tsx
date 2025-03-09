@@ -1,27 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
-import { Menu, X } from "lucide-react";
+import Cookies from "js-cookie";
 
 export default function NavigationBar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [token, setToken] = useState(Cookies.get("token"));
+  const [role, setRole] = useState(Cookies.get("role"));
+  const [username, setUsername] = useState("User");
 
-  const isAuthenticated = !!localStorage.getItem("token");
+  useEffect(() => {
+    setToken(Cookies.get("token"));
+    setRole(Cookies.get("role"));
+    setUsername(Cookies.get("username") || "User");
+  }, []);
+
+  const handleLogout = () => {
+    Cookies.remove("token");
+    Cookies.remove("role");
+    Cookies.remove("username");
+    setToken(undefined);
+    setRole(undefined);
+    navigate("/");
+  };
 
   return (
     <nav className="bg-background border-b border-gray-700">
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
-        {/* Logo on the left */}
+        {/* Logo */}
         <Link to="/" className="text-2xl font-semibold text-primary">
           SecureVPN
         </Link>
 
-        {/* Right Side: Pushed using `ml-auto` */}
+        {/* Right Side: Auth + Dark Mode */}
         <div className="ml-auto flex items-center space-x-4">
           <DarkModeToggle />
-          {!isAuthenticated ? (
+
+          {!token ? (
             <>
               <Link to="/login">
                 <Button variant="ghost">Login</Button>
@@ -33,19 +51,22 @@ export default function NavigationBar() {
               </Link>
             </>
           ) : (
-            <Button onClick={() => navigate("/dashboard")} variant="ghost">
-              Dashboard
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Avatar>
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${username}`} alt="User Avatar" />
+                  <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate(role === "ADMIN" ? "/admin" : "/dashboard")}>
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
-
-        {/* Mobile Menu Button (Hidden on Desktop) */}
-        <button
-          className="md:hidden text-primary ml-4"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
       </div>
     </nav>
   );

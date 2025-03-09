@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "@/services/api"; // Fixed incorrect alias import
+import { registerUser } from "@/services/api";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -15,10 +15,10 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await registerUser({ username, email, password });
+      await registerUser(username, email, password);
       navigate("/login");
     } catch (err) {
-      setError("Registration failed. Please try again."+err);
+      setError(`Registration failed. Please try again. ${err}`);
     }
   };
 
