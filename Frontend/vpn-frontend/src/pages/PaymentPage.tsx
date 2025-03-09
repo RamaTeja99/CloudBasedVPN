@@ -19,64 +19,48 @@ export default function PaymentPage() {
       await subscribeToPlan(selectedPlan);
       navigate("/dashboard");
     } catch (err) {
-      setError("Failed to subscribe. Please try again.");
+      setError(`Failed to subscribe. Please try again.${err}`);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="container py-12">
-        <h1 className="text-3xl font-bold mb-8 text-dark-primary">Select a Payment Plan</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card
-            className={`bg-dark-secondary cursor-pointer ${
-              selectedPlan === "FREE" ? "border-dark-primary" : ""
-            }`}
-            onClick={() => setSelectedPlan("FREE")}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-600 p-6">
+      <Card className="w-full max-w-xl bg-gray-900 shadow-2xl border border-gray-700 rounded-lg">
+        <CardHeader>
+          <CardTitle className="text-white text-center text-2xl font-semibold">Choose Your Plan</CardTitle>
+          <CardDescription className="text-gray-400 text-center">Select a plan to get started with CloudVPN</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && <p className="text-red-500 text-center mb-4 font-medium">{error}</p>}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {["FREE", "MONTHLY", "YEARLY"].map((plan) => (
+              <Card
+                key={plan}
+                className={`p-4 cursor-pointer transition-all duration-300 ${
+                  selectedPlan === plan ? "border-2 border-blue-500" : "border-gray-700"
+                } bg-gray-800 hover:bg-gray-700`}
+                onClick={() => setSelectedPlan(plan as "FREE" | "MONTHLY" | "YEARLY")}
+              >
+                <CardHeader className="text-center">
+                  <CardTitle className="text-white">
+                    {plan === "FREE" ? "Free Trial" : plan === "MONTHLY" ? "Monthly Plan" : "Yearly Plan"}
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    {plan === "FREE" ? "7 Days Free" : plan === "MONTHLY" ? "₹49/month" : "₹999/year"}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+          <Button
+            onClick={handleSubscribe}
+            className="mt-6 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-semibold shadow-md"
+            disabled={!selectedPlan}
           >
-            <CardHeader>
-              <CardTitle className="text-dark-foreground">Free Plan</CardTitle>
-              <CardDescription className="text-dark-accent">
-                7 Days Free Trial
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card
-            className={`bg-dark-secondary cursor-pointer ${
-              selectedPlan === "MONTHLY" ? "border-dark-primary" : ""
-            }`}
-            onClick={() => setSelectedPlan("MONTHLY")}
-          >
-            <CardHeader>
-              <CardTitle className="text-dark-foreground">Monthly Plan</CardTitle>
-              <CardDescription className="text-dark-accent">
-                ₹49/month
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card
-            className={`bg-dark-secondary cursor-pointer ${
-              selectedPlan === "YEARLY" ? "border-dark-primary" : ""
-            }`}
-            onClick={() => setSelectedPlan("YEARLY")}
-          >
-            <CardHeader>
-              <CardTitle className="text-dark-foreground">Yearly Plan</CardTitle>
-              <CardDescription className="text-dark-accent">
-                ₹999/year
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-        <Button
-          onClick={handleSubscribe}
-          className="mt-4 bg-dark-primary hover:bg-dark-secondary"
-          disabled={!selectedPlan}
-        >
-          Subscribe
-        </Button>
-      </div>
+            Subscribe Now
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

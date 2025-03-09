@@ -1,8 +1,22 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "@/services/api";
-
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  subscription?: {
+    planType?: string;
+  };
+}
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
@@ -13,40 +27,63 @@ export default function AdminDashboard() {
         const response = await getAllUsers();
         setUsers(response.data);
       } catch (err) {
-        setError("Failed to fetch users.");
+        setError(`Failed to fetch users. ${err}`);
       }
     };
     fetchUsers();
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-r from-gray-900 to-gray-800 text-white p-6">
       <div className="container py-12">
-        <h1 className="text-3xl font-bold mb-8 text-dark-primary">Admin Dashboard</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <Card className="bg-dark-secondary">
+        <h1 className="text-4xl font-extrabold text-center mb-8">
+          Admin Dashboard
+        </h1>
+        {error && (
+          <p className="text-red-500 text-center font-medium">{error}</p>
+        )}
+
+        <Card className="bg-gray-800 shadow-lg border border-gray-700 rounded-lg">
           <CardHeader>
-            <CardTitle className="text-dark-foreground">Users</CardTitle>
+            <CardTitle className="text-white text-xl">
+              User Management
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="w-full text-white">
               <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Subscription</TableHead>
+                <TableRow className="bg-gray-700">
+                  <TableHead className="px-4 py-3">ID</TableHead>
+                  <TableHead className="px-4 py-3">Email</TableHead>
+                  <TableHead className="px-4 py-3">Role</TableHead>
+                  <TableHead className="px-4 py-3">Subscription</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user: any) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.id}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>{user.subscription?.planType || "None"}</TableCell>
+                {users.length > 0 ? (
+                  users.map((user: User) => (
+                    <TableRow
+                      key={user.id}
+                      className="hover:bg-gray-700 transition-all"
+                    >
+                      <TableCell className="px-4 py-3">{user.id}</TableCell>
+                      <TableCell className="px-4 py-3">{user.email}</TableCell>
+                      <TableCell className="px-4 py-3">{user.role}</TableCell>
+                      <TableCell className="px-4 py-3">
+                        {user.subscription?.planType || "None"}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="text-center py-4 text-gray-400"
+                    >
+                      No users found.
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
