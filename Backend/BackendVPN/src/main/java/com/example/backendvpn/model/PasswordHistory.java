@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 @Entity
-
 public class PasswordHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

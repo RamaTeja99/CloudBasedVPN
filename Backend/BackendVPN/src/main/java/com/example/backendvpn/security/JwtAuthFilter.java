@@ -1,5 +1,6 @@
 package com.example.backendvpn.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,15 +18,13 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-    
-    private final JwtService jwtService;
-    private final UserRepository userRepo;
+    @Autowired
+    private  JwtService jwtService;
+    @Autowired
+    private  UserRepository userRepo;
 
-    // Manual constructor injection
-    public JwtAuthFilter(JwtService jwtService, UserRepository userRepo) {
-        this.jwtService = jwtService;
-        this.userRepo = userRepo;
-    }
+
+    
 
     @Override
     protected void doFilterInternal(

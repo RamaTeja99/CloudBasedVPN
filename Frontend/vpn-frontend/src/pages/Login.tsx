@@ -3,23 +3,32 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "@/services/api"; // Fixed incorrect alias import
+import { loginUser } from "@/services/api";
+import Cookies from "js-cookie";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username || !password) {
+      setError("❌ Username and Password are required.");
+      return;
+    }
+
     try {
-      const response = await loginUser({ email, password });
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", response.data.role);
-      navigate(response.data.role === "ADMIN" ? "/admin" : "/dashboard");
+      await loginUser(username, password);
+      // Redirect based on role
+      const role = Cookies.get("role");
+      if (role === "ADMIN") navigate("/admin"); 
+      else navigate("/dashboard"); 
+
     } catch (err) {
-        setError(`Invalid email or password. ${err}`);    }
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+    }
   };
 
   return (
@@ -29,51 +38,14 @@ export default function Login() {
           <CardTitle className="text-white text-center text-2xl font-semibold">
             CloudVPN - Secure Browsing
           </CardTitle>
-          <p className="text-gray-400 text-center text-sm">Powered by AWS</p>
         </CardHeader>
         <CardContent>
-          {error && (
-            <p className="text-red-500 text-center mb-4 font-medium">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-gray-300 mb-1">Email Address</label>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-gray-800 text-white border border-gray-600 focus:ring focus:ring-blue-400"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-1">Password</label>
-              <Input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-800 text-white border border-gray-600 focus:ring focus:ring-blue-400"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-semibold shadow-md"
-            >
-              Login Securely
-            </Button>
+            <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Button type="submit" className="w-full bg-blue-600">Login Securely</Button>
           </form>
-          <p className="text-gray-400 text-sm text-center mt-4">
-            Need an account?{" "}
-            <span
-              className="text-blue-400 hover:underline cursor-pointer"
-              onClick={() => navigate("/register")}
-            >
-              Sign up here
-            </span>
-          </p>
         </CardContent>
       </Card>
     </div>

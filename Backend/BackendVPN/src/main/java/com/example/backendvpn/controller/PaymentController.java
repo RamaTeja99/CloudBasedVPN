@@ -9,13 +9,11 @@ import com.example.backendvpn.service.PaymentService;
 
 @RestController
 @RequestMapping("/api/payments")
+@CrossOrigin
 public class PaymentController {
     @Autowired
-    private final PaymentService paymentService;
+    private  PaymentService paymentService;
 
-    public PaymentController(PaymentService paymentService) {
-        this.paymentService = paymentService;
-    }
 
     @PostMapping("/create-order/{userId}")
     public ResponseEntity<?> createOrder(

@@ -9,23 +9,26 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "@/services/api";
+
+// Define the User interface
 interface User {
-  id: string;
+  id: number;
   email: string;
   role: string;
   subscription?: {
     planType?: string;
   };
 }
+
 export default function AdminDashboard() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]); // Properly type the users state
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await getAllUsers();
-        setUsers(response.data);
+        setUsers(response); 
       } catch (err) {
         setError(`Failed to fetch users. ${err}`);
       }
@@ -61,7 +64,7 @@ export default function AdminDashboard() {
               </TableHeader>
               <TableBody>
                 {users.length > 0 ? (
-                  users.map((user: User) => (
+                  users.map((user) => (
                     <TableRow
                       key={user.id}
                       className="hover:bg-gray-700 transition-all"

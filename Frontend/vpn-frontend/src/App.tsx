@@ -3,49 +3,33 @@ import NavigationBar from "@/components/Navbar";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import UserDashboard from "@/pages/UserDashboard";
+import PaymentPage from "./pages/PaymentPage";
 import AdminDashboard from "@/pages/AdminDashboard";
-import PaymentPage from "@/pages/PaymentPage";
+
 import HomePage from "@/pages/HomePage";
-//import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Cookies from "js-cookie";
 
 export default function App() {
-  const isAuthenticated = !!localStorage.getItem("token");
-  const isAdmin = localStorage.getItem("role") === "ADMIN";
+  const token = Cookies.get("token");
+  const role = Cookies.get("role");
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-background text-foreground">
-        <NavigationBar />
-        <div className="flex-grow-1">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+      <NavigationBar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={<ProtectedRoute element={<UserDashboard />} roleRequired="USER" />} />
+        <Route path="/payment" element={<ProtectedRoute element={<PaymentPage />} roleRequired="USER" />} />
+        <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} roleRequired="ADMIN" />} />
 
-            {/* Protected Routes for Authenticated Users */}
-            <Route>
-              <Route path="/dashboard" element={<UserDashboard />} />
-              <Route path="/payment" element={<PaymentPage />} />
-            </Route>
-
-            {/* Protected Routes for Admins Only */}
-            <Route
-              // element={
-              //   <ProtectedRoute
-              //     isAllowed={isAuthenticated && isAdmin}
-              //     redirectPath="/login"
-              //   />
-              // }
-            >
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Route>
-
-            {/* Default Redirect */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </div>
-      </div>
+        {/* Redirect all other routes */}
+        <Route path="*" element={<Navigate to={token ? (role === "ADMIN" ? "/admin" : "/dashboard") : "/"} />} />
+      </Routes>
     </BrowserRouter>
   );
 }
