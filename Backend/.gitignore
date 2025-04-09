@@ -1,1 +1,3 @@
 /.metadata/
+/BackendVPN/src/main/resources/application.properties
+/BackendVPN/src/main/resources/SecurityKeyForVPN.pem
