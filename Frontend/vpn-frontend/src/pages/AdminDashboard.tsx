@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
 import { getAllUsers } from "@/services/api";
-
-// Define the User interface
 interface User {
   id: number;
   email: string;
