@@ -20,20 +20,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authManager;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private UserService userService;
+    @Autowired private AuthenticationManager authManager;
+    @Autowired private JwtService jwtService;
+    @Autowired private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password, HttpServletResponse response) {
+    public ResponseEntity<?> login(
+            @RequestParam String username,
+            @RequestParam String password,
+            HttpServletResponse response) {
         try {
             Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
@@ -46,27 +44,29 @@ public class AuthController {
                     .body("❌ Password expired. Please change your password.");
             }
 
+            // Generate JWT with embedded id & role
             String jwt = jwtService.generateToken(user);
 
-            
+            // Set HTTP-only cookie
             Cookie cookie = new Cookie("jwt", jwt);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true); 
+            cookie.setSecure(true);   // set to false if not using HTTPS in dev
             cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 24); 
+            cookie.setMaxAge((int) (jwtService.getExpiration() / 1000));
             response.addCookie(cookie);
-            Map<String, String> responseBody = new HashMap<>();
-            responseBody.put("token", jwt);
-            responseBody.put("role", user.getRole().name());
-            responseBody.put("username", user.getUsername());
 
-            return ResponseEntity.ok(responseBody);
+            // Return the token in JSON as well for frontend JS
+            Map<String, String> body = new HashMap<>();
+            body.put("token", jwt);
+            body.put("username", user.getUsername());
+            body.put("role", user.getRole().name());
+
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            System.out.println("❌ Authentication failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid username or password.");
         }
     }
-
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
@@ -75,10 +75,11 @@ public class AuthController {
             @RequestParam String password) {
 
         if (userService.userExists(username)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ Username already taken.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("❌ Username already taken.");
         }
 
-        User user = userService.registerUser(username, email, password);
+        userService.registerUser(username, email, password);
         return ResponseEntity.ok("✅ User registered successfully.");
     }
 }

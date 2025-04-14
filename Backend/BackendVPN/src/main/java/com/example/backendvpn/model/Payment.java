@@ -2,12 +2,29 @@ package com.example.backendvpn.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import jakarta.persistence.*;
 
 @Entity
 public class Payment {
-    public Long getId() {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String razorpaySignature;
+
+    private BigDecimal amount;
+    private LocalDateTime paymentDate = LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
+
+	public Long getId() {
 		return id;
 	}
 
@@ -70,23 +87,5 @@ public class Payment {
 	public void setStatus(PaymentStatus status) {
 		this.status = status;
 	}
-
-	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-    
-    private String razorpayOrderId;
-    private String razorpayPaymentId;
-    private String razorpaySignature;
-    private BigDecimal amount;
-    private LocalDateTime paymentDate = LocalDateTime.now();
-    
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
 }
-
-enum PaymentStatus { PENDING, COMPLETED, FAILED }

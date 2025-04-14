@@ -47,7 +47,7 @@ public class Subscription {
 		this.active = active;
 	}
 	@ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false,unique=true)
     private User user;
     
     @Enumerated(EnumType.STRING)
@@ -57,5 +57,3 @@ public class Subscription {
     private LocalDateTime endDate;
     private boolean active;
 }
-
-enum PlanType { FREE, MONTHLY, YEARLY }

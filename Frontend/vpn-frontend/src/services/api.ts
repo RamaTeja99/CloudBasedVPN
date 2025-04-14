@@ -3,99 +3,75 @@ import Cookies from "js-cookie";
 
 const API_URL = "http://localhost:8080/api";
 
-interface LoginResponse {
-  token: string;
-  role: string;
-  username: string;
-}
+// Automatically attach JWT
+axios.interceptors.request.use(cfg => {
+  const token = Cookies.get("token");
+  if (token) cfg.headers!["Authorization"] = `Bearer ${token}`;
+  return cfg;
+});
 
-interface SubscriptionResponse {
-  isActive: boolean;
-}
-
-interface User {
-  id: number;
-  email: string;
-  role: string;
-  subscription?: {
-    planType?: string;
-  };
-}
-
-// Login user
+// Auth
+export interface LoginResponse { token: string; role: string; username: string; }
 export const loginUser = async (username: string, password: string): Promise<void> => {
-  try {
-    const response = await axios.post<LoginResponse>(`${API_URL}/auth/login`, null, {
-      params: { username, password },
-    });
-
-    // Store JWT & Role in Cookies
-    Cookies.set("token", response.data.token, { expires: 1 });
-    Cookies.set("role", response.data.role, { expires: 1 });
-    Cookies.set("username", response.data.username, { expires: 1 });
-
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.data || "Login failed.");
-    }
-    throw new Error("An unexpected error occurred.");
-  }
-};
-
-// Register user
-export const registerUser = async (username: string, email: string, password: string): Promise<User> => {
-  try {
-    const response = await axios.post<User>(`${API_URL}/auth/register`, null, {
-      params: { username, email, password },
-    });
-    return response.data;
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.data || "Registration failed.");
-    }
-    throw new Error("An unexpected error occurred.");
-  }
-};
-
-// Connect to VPN
-export const connectToVpn = async (): Promise<{ status: string }> => {
-  const response = await axios.post<{ status: string }>(
-    `${API_URL}/vpn/connect`,
-    {},
-    { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
-  );
-  return response.data;
-};
-
-// Check Subscription
-export const checkSubscription = async (): Promise<SubscriptionResponse> => {
-  const response = await axios.get<SubscriptionResponse>(`${API_URL}/subscription`, {
-    headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+  const resp = await axios.post<LoginResponse>(`${API_URL}/auth/login`, null, {
+    params: { username, password },
   });
-  return response.data;
+  Cookies.set("token", resp.data.token, { expires: 1 });
+  Cookies.set("role", resp.data.role, { expires: 1 });
+  Cookies.set("username", resp.data.username, { expires: 1 });
 };
 
-// Get all users (Admin)
+export interface User { id: number; email: string; role: string; }
+export const registerUser = async (username: string, email: string, password: string): Promise<User> => {
+  const resp = await axios.post<User>(`${API_URL}/auth/register`, null, {
+    params: { username, email, password },
+  });
+  return resp.data;
+};
+export const checkSubscription = async (userId: number) => {
+  const res = await fetch(`/api/subscription/${userId}`, {
+    credentials: "include"
+  });
+  if (!res.ok) throw new Error("Subscription not found");
+  const data = await res.json();
+  return {
+    isActive: data?.active || false,
+    planType: data?.planType || null
+  };
+};
+
+
+// // Subscription
+// export interface SubscriptionResponse { isActive: boolean; }
+
+export const createFreeSubscription = () =>
+  axios.post(`${API_URL}/subscription/create-free`).then(r => r.data);
+
+export const createPaidSubscription = (plan: "MONTHLY" | "YEARLY", orderId: string) =>
+  axios.post(`${API_URL}/subscription/create`, null, {
+    params: { planType: plan, razorpayOrderId: orderId }
+  }).then(r => r.data);
+
+// Payments
+export const createOrder = (userId: number, amount: number, referralCode?: string) =>
+  axios.post<string>(`${API_URL}/payments/create-order/${userId}`, null, {
+    params: { amount, referralCode }
+  }).then(r => r.data);
+
+export const handlePaymentSuccess = (orderId: string, paymentId: string, signature: string) =>
+  axios.post(`${API_URL}/payments/success`, null, {
+    params: { razorpayOrderId: orderId, razorpayPaymentId: paymentId, razorpaySignature: signature }
+  }).then(r => r.data);
+
+// VPN
+export const connectToVpn = () =>
+  axios.post<{ config: string; qrCode: string }>(`${API_URL}/vpn/connect`).then(r => r.data);
+
+export const stopVpn = () =>
+  axios.post(`${API_URL}/vpn/disconnect`);
 export const getAllUsers = async (): Promise<User[]> => {
   const response = await axios.get<User[]>(`${API_URL}/admin/users`, {
     headers: { Authorization: `Bearer ${Cookies.get("token")}` },
   });
   return response.data;
-};
-
-// Subscribe to a plan
-export const subscribeToPlan = async (
-  plan: "FREE" | "MONTHLY" | "YEARLY",
-  amount?: number,
-  currency?: string,
-  receipt?: string,
-  paymentId?: string
-): Promise<void> => {
-  await axios.post(
-    `${API_URL}/subscription/subscribe`,
-    { plan, amount, currency, receipt, paymentId },
-    {
-      headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-    }
-  );
 };

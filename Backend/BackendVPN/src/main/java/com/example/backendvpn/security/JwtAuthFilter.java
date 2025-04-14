@@ -41,15 +41,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         
         String token = header.substring(7);
         if (jwtService.validateToken(token)) {
-            String email = jwtService.extractUsername(token);
-            User user = userRepo.findByEmail(email)
+            String username = jwtService.extractUsername(token);
+            User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            
+
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                user, null, ((Authentication) user).getAuthorities()
+                user, null, user.getAuthorities()
             );
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
+
         
         filterChain.doFilter(request, response);
     }

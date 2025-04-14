@@ -25,80 +25,69 @@ public class Ec2Service {
     @Value("${aws.instance-type}")
     private String instanceType;
 
+    @Value("${aws.key-pair-name}")
+    private String keyPairName;
+
     public Ec2Service(Ec2Client ec2) {
         this.ec2 = ec2;
     }
 
     public String launchInstance() {
-        String userData = """
-            #!/bin/bash
-            apt-get update -y
-            apt-get install -y wireguard resolvconf
-            umask 077
-            wg genkey | tee /etc/wireguard/server-private.key | wg pubkey > /etc/wireguard/server-public.key
-            cat > /etc/wireguard/wg0.conf <<EOF
-            [Interface]
-            PrivateKey = $(cat /etc/wireguard/server-private.key)
-            Address = 10.8.0.1/24
-            ListenPort = 51820
-            PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-            PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-            EOF
-            echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
-            sysctl -p
-            systemctl enable wg-quick@wg0
-            systemctl start wg-quick@wg0
-            """;
-
         RunInstancesRequest request = RunInstancesRequest.builder()
                 .imageId(amiId)
                 .instanceType(InstanceType.fromValue(instanceType))
                 .minCount(1)
                 .maxCount(1)
+                .keyName(keyPairName)
                 .securityGroupIds(securityGroup)
-                .userData(Base64.getEncoder().encodeToString(userData.getBytes()))
                 .build();
 
         try {
             RunInstancesResponse response = ec2.runInstances(request);
             String instanceId = response.instances().get(0).instanceId();
-
-            // Wait for instance to be running
+            log.info("Launched instance ID: {}", instanceId);
             waitForInstanceRunning(instanceId);
             return instanceId;
         } catch (Ec2Exception e) {
             log.error("Failed to launch instance", e);
-            throw new RuntimeException("Failed to launch EC2 instance", e);
-        }
-    }
-
-    private void waitForInstanceRunning(String instanceId) {
-        boolean running = false;
-        while (!running) {
-            try {
-                DescribeInstancesResponse response = ec2.describeInstances(
-                        DescribeInstancesRequest.builder().instanceIds(instanceId).build());
-
-                InstanceStateName state = response.reservations().get(0)
-                        .instances().get(0).state().name();
-
-                running = state == InstanceStateName.RUNNING;
-                if (!running) {
-                    TimeUnit.SECONDS.sleep(5);
-                }
-            } catch (Exception e) {
-                log.error("Error waiting for instance", e);
-                throw new RuntimeException("Instance status check failed", e);
-            }
+            throw new RuntimeException("EC2 launch failed", e);
         }
     }
 
     public String getInstancePublicIp(String instanceId) {
-        DescribeInstancesRequest request = DescribeInstancesRequest.builder()
-                .instanceIds(instanceId)
-                .build();
-
-        DescribeInstancesResponse response = ec2.describeInstances(request);
+        DescribeInstancesResponse response = ec2.describeInstances(
+                DescribeInstancesRequest.builder().instanceIds(instanceId).build()
+        );
         return response.reservations().get(0).instances().get(0).publicIpAddress();
+    }
+
+    public void terminateInstance(String instanceId) {
+        try {
+            TerminateInstancesRequest request = TerminateInstancesRequest.builder()
+                    .instanceIds(instanceId).build();
+            ec2.terminateInstances(request);
+            log.info("Terminated instance: {}", instanceId);
+        } catch (Exception e) {
+            log.error("Termination failed", e);
+        }
+    }
+
+    private void waitForInstanceRunning(String instanceId) {
+        while (true) {
+            DescribeInstancesResponse response = ec2.describeInstances(
+                    DescribeInstancesRequest.builder().instanceIds(instanceId).build()
+            );
+            InstanceStateName state = response.reservations().get(0)
+                    .instances().get(0).state().name();
+
+            if (state == InstanceStateName.RUNNING) break;
+
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted during wait", e);
+            }
+        }
     }
 }
